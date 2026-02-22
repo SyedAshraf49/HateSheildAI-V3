@@ -1,0 +1,1678 @@
+﻿<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HateShield  Analyzer</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <style>
+    .input-wrapper { position: relative; }
+    .char-limit-warning { color: #ff9966; font-weight: 600; }
+    .char-limit-error { color: #ff6b6b; font-weight: 600; }
+    .quick-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .result-block { animation: slideUp 0.3s ease-out; }
+    
+    .classification-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .classification-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    
+    .badge-safe::before {
+      background: #4ade80;
+      box-shadow: 0 0 8px #4ade80;
+    }
+    
+    .badge-offensive::before {
+      background: #fbbf24;
+      box-shadow: 0 0 8px #fbbf24;
+    }
+    
+    .badge-toxic::before,
+    .badge-hate_speech::before {
+      background: #f87171;
+      box-shadow: 0 0 8px #f87171;
+    }
+    
+    .badge-invalid::before {
+      background: #94a3b8;
+      box-shadow: 0 0 8px #94a3b8;
+    }
+    
+    .emotion-bar {
+      margin: 16px 0;
+      padding: 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      transition: background 0.3s ease;
+    }
+    
+    .sky-theme .emotion-bar {
+      background: rgba(0,0,0,0.05);
+    }
+    
+    .emotion-item {
+      display: flex;
+      align-items: center;
+      margin: 8px 0;
+      gap: 12px;
+    }
+    
+    .emotion-label {
+      min-width: 80px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    
+    .emotion-progress {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+    
+    .sky-theme .emotion-progress {
+      background: rgba(0,0,0,0.1);
+    }
+    
+    .emotion-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0%;
+    }
+    
+    .emotion-value {
+      min-width: 45px;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    
+    .copy-feedback {
+      position: fixed;
+      bottom: 80px;
+      right: 28px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #052033;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease-out;
+      z-index: 50;
+    }
+    
+    .sky-theme .copy-feedback {
+      color: #fff;
+    }
+    
+    .loading-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(5,32,51,0.3);
+      border-top-color: #052033;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    
+    .sky-theme .loading-spinner {
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .history-section {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--glass-border);
+    }
+    
+    .history-item {
+      background: rgba(255,255,255,0.02);
+      padding: 10px;
+      border-radius: 8px;
+      margin: 8px 0;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    
+    .sky-theme .history-item {
+      background: rgba(0,0,0,0.02);
+    }
+    
+    .history-item:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: var(--glass-border);
+    }
+    
+    .sky-theme .history-item:hover {
+      background: rgba(0,0,0,0.05);
+    }
+    
+    .history-item-text {
+      font-size: 13px;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .history-item-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      display: inline-block;
+      margin-top: 4px;
+    }
+    
+    .sky-theme .history-item-badge {
+      background: rgba(0,0,0,0.05);
+    }
+    
+    .clear-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #ff6b6b;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    
+    .sky-theme .clear-btn {
+      border: 1px solid rgba(0,0,0,0.2);
+    }
+    
+    .clear-btn:hover {
+      background: rgba(255,107,107,0.1);
+      border-color: #ff6b6b;
+    }
+
+    .image-section {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .image-upload-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    #imageInput {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px 14px;
+      border: 2px solid var(--glass-border);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    #imageInput:hover {
+      border-color: var(--accent);
+      background: rgba(52,152,219,0.1);
+    }
+
+    #imageInput:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+    }
+
+    #imageInput::file-selector-button {
+      padding: 8px 16px;
+      margin-right: 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    #imageInput::file-selector-button:hover {
+      background: #2196F3;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(52,152,219,0.3);
+    }
+
+    .image-preview-wrap {
+      margin-top: 16px;
+      display: none;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      animation: slideUp 0.4s ease-out;
+    }
+
+    .image-preview-wrap.active {
+      display: block;
+    }
+
+    #imagePreview {
+      width: 100%;
+      max-height: 320px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid var(--glass-border);
+      background: rgba(0,0,0,0.3);
+    }
+
+    .image-result {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      display: none;
+      animation: slideUp 0.5s ease-out;
+    }
+
+    .image-result.active {
+      display: block;
+    }
+
+    .image-result-head {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .image-status {
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+
+    .image-status.safe {
+      color: #4ade80;
+    }
+
+    .image-status.unsafe {
+      color: #f87171;
+    }
+
+    .image-warning {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #fbbf24;
+      display: none;
+    }
+
+    .audience-section {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    #audienceInput {
+      width: 100%;
+      min-height: 44px;
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 2px solid var(--glass-border);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-primary);
+      resize: none;
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    #audienceInput:hover {
+      border-color: var(--accent);
+      background: rgba(52,152,219,0.1);
+    }
+
+    #audienceInput:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+      background: rgba(255,255,255,0.08);
+    }
+
+    textarea, input[type="text"] {
+      padding: 12px 14px !important;
+      border: 2px solid var(--glass-border) !important;
+      border-radius: 10px !important;
+      background: rgba(255,255,255,0.05) !important;
+      color: var(--text-primary) !important;
+      font-family: inherit !important;
+      font-size: 14px !important;
+      transition: all 0.3s ease !important;
+    }
+
+    textarea:hover, input[type="text"]:hover {
+      border-color: var(--accent) !important;
+      background: rgba(52,152,219,0.1) !important;
+    }
+
+    textarea:focus, input[type="text"]:focus {
+      outline: none !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(52,152,219,0.2) !important;
+      background: rgba(255,255,255,0.08) !important;
+    }
+
+    textarea::placeholder, input[type="text"]::placeholder, input[type="url"]::placeholder, input[type="file"]::placeholder {
+      color: rgba(255,255,255,0.4) !important;
+      opacity: 1 !important;
+    }
+    }
+
+    .audience-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .audience-result {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      display: none;
+      animation: slideUp 0.5s ease-out;
+    }
+
+    .audience-result.active {
+      display: block;
+    }
+
+    .audience-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .audience-metric {
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      text-align: center;
+    }
+
+    .audience-value {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .audience-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .post-analysis-section {
+      margin-top: 28px;
+      padding-top: 28px;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    .post-input-grid {
+      display: grid;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .post-result {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+      display: none;
+      animation: slideUp 0.5s ease-out;
+    }
+
+    .post-result.active {
+      display: block;
+    }
+
+    .verdict-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .verdict-approved {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid #10b981;
+    }
+
+    .verdict-revision {
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid #ef4444;
+    }
+
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .score-card {
+      padding: 14px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      text-align: center;
+    }
+
+    .score-value {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 4px 0;
+    }
+
+    .score-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .suggestions-list {
+      margin: 16px 0;
+    }
+
+    .suggestion-item {
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border-left: 3px solid;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .suggestion-critical {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .suggestion-medium {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .suggestion-low {
+      border-color: #6b7280;
+      background: rgba(107, 114, 128, 0.1);
+    }
+
+    .comparison-bar {
+      display: flex;
+      height: 32px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 12px 0;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .bar-engagement {
+      background: linear-gradient(135deg, #10b981, #059669);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .bar-toxicity {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .hub-mode .page-grid {
+      display: none !important;
+    }
+
+    .hub-card {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .hub-title {
+      margin: 0 0 8px;
+    }
+
+    .hub-subtitle {
+      color: var(--muted);
+      margin: 0 0 20px;
+      font-size: 14px;
+    }
+
+    .hub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .hub-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 18px;
+      transition: all 0.2s ease;
+    }
+
+    .hub-link:hover {
+      border-color: var(--accent);
+      background: rgba(52,152,219,0.1);
+      transform: translateY(-2px);
+    }
+
+    .hub-link h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .hub-link p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body class="slide-up hub-mode">
+  <nav class="glass-nav">
+    <div class="logo" onclick="location.href='index.html'"><div class="logo-mark"><img src="assets/logo.png" alt="HateShield logo"></div><div class="logo-text">HateShield</div></div>
+    <div class="nav-center">
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link active" href="dashboard.html">Analyzer Hub</a>
+      <a class="nav-link" href="text-analyzer.html">Text</a>
+      <a class="nav-link" href="image-detection.html">Image</a>
+      <a class="nav-link" href="audience-analysis.html">Audience</a>
+      <a class="nav-link" href="post-analysis.html">Post</a>
+      <a class="nav-link" href="settings.html">Settings</a>
+    </div>
+    <div class="nav-right">
+      <button id="themeToggle" class="icon-btn" onclick="toggleTheme()">🌙</button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="glass-card hub-card">
+      <h2 class="hub-title">Choose A Feature</h2>
+      <p class="hub-subtitle">Each feature now has its own dedicated page with aligned inputs and focused UI.</p>
+      <div class="hub-grid">
+        <a class="hub-link" href="text-analyzer.html">
+          <h3> Text Analyzer</h3>
+          <p>Analyze text toxicity, confidence, emotions, and safe rewrites.</p>
+        </a>
+        <a class="hub-link" href="image-detection.html">
+          <h3>🖼️ Image Detection</h3>
+          <p>Upload images and detect unsafe visual content with emotion hints.</p>
+        </a>
+        <a class="hub-link" href="audience-analysis.html">
+          <h3> Audience Analysis</h3>
+          <p>Evaluate audience reactions from URLs or local HTML test files.</p>
+        </a>
+        <a class="hub-link" href="post-analysis.html">
+          <h3> Post Analysis</h3>
+          <p>Check quality, engagement, toxicity risk, and improvement suggestions.</p>
+        </a>
+      </div>
+    </section>
+
+    <div class="page-grid">
+      <section class="glass-card big-card">
+        <div id="image-section" class="image-section">
+          <h2 style="margin-top: 0;">🖼️ Image Detection</h2>
+          <p class="muted" style="font-size: 13px; margin: 0;">Detect hate, offensive meaning, or negative emotions from images and memes.</p>
+
+          <div class="image-upload-row">
+            <input id="imageInput" type="file" accept="image/*" onchange="previewSelectedImage()" />
+            <button class="primary-btn" id="analyzeImageBtn" onclick="analyzeImage()">🖼️ Analyze Image</button>
+          </div>
+
+          <div id="imagePreviewWrap" class="image-preview-wrap">
+            <img id="imagePreview" alt="Selected image preview" />
+          </div>
+
+          <div id="imageResult" class="image-result">
+            <div class="image-result-head">
+              <span id="imageStatus" class="image-status">SAFE</span>
+              <span id="imageEmotion" class="muted">Emotion: neutral</span>
+            </div>
+            <div id="imageMeta" class="muted" style="margin-top: 8px; font-size: 13px;"></div>
+            <div id="imageWarning" class="image-warning"></div>
+          </div>
+        </div>
+
+        <div id="audience-section" class="audience-section">
+          <h2> Audience Reaction Analysis</h2>
+          <p class="muted" style="font-size: 13px; margin: 0 0 8px 0;">Paste a post link. HateShield will read available comments and analyze audience reaction.</p>
+          <p class="muted" style="font-size: 12px; margin: 0 0 8px 0; padding: 8px; background: rgba(52,152,219,0.1); border-radius: 6px; border-left: 3px solid #3498db;">
+             <strong>Test Files Available:</strong> <code>test_positive.html</code>, <code>test_negative.html</code>, <code>test_neutral.html</code><br>
+            Open any test file in browser, copy its file:/// URL, and paste here.<br>
+            <span style="font-size: 11px;">ℹ️ Social media (LinkedIn, Facebook, Twitter) require login and won't work. Use public blogs/forums instead.</span>
+          </p>
+
+          <input id="audienceInput" type="url" placeholder="Paste post URL or file:/// path from test files" />
+
+          <div class="audience-actions">
+            <button class="primary-btn" id="analyzeAudienceBtn" onclick="analyzeAudienceReaction()"> Analyze Post Audience</button>
+          </div>
+
+          <div id="audienceResult" class="audience-result">
+            <div class="image-result-head">
+              <span id="dominantEmotionText" class="image-status safe">Dominant: neutral</span>
+              <span id="audienceMeta" class="muted"></span>
+            </div>
+            <div class="audience-grid">
+              <div class="audience-metric">
+                <div id="positivePercent" class="audience-value">0%</div>
+                <div class="audience-label">Positive</div>
+              </div>
+              <div class="audience-metric">
+                <div id="negativePercent" class="audience-value">0%</div>
+                <div class="audience-label">Negative</div>
+              </div>
+              <div class="audience-metric">
+                <div id="neutralPercent" class="audience-value">0%</div>
+                <div class="audience-label">Neutral</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="post-section" class="post-analysis-section">
+          <h2> Post Analysis</h2>
+          <p class="muted" style="font-size: 13px; margin: 0 0 8px 0;">Analyze your social media content before posting. Get quality checks, engagement predictions, and toxicity risk assessment.</p>
+
+          <div class="post-input-grid">
+            <div class="input-wrapper">
+              <label style="font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px;">Caption</label>
+              <textarea id="postCaption" placeholder="Enter your post caption..." style="min-height: 60px;"></textarea>
+            </div>
+
+            <div class="input-wrapper">
+              <label style="font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px;">Hashtags</label>
+              <input id="postHashtags" type="text" placeholder="#example #socialmedia #content" />
+            </div>
+
+            <div class="input-wrapper">
+              <label style="font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px;">Description / Additional Content</label>
+              <textarea id="postDescription" placeholder="Reel description or additional post content..." style="min-height: 60px;"></textarea>
+            </div>
+
+            <div class="input-wrapper">
+              <label style="font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px;">Target Audience (Optional)</label>
+              <input id="postAudience" type="text" placeholder="e.g., Young adults, Tech enthusiasts, Parents" />
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 12px;">
+            <button class="primary-btn" id="analyzePostBtn" onclick="analyzePost()"> Analyze Post</button>
+            <button class="secondary-btn" onclick="clearPostForm()">🗑️ Clear</button>
+          </div>
+
+          <div id="postResult" class="post-result">
+            <div id="postVerdict" class="verdict-badge verdict-approved"> APPROVED FOR POSTING</div>
+            
+            <div class="score-grid">
+              <div class="score-card">
+                <div class="score-label">Quality Score</div>
+                <div id="qualityScore" class="score-value" style="color: #3b82f6;">0</div>
+              </div>
+              <div class="score-card">
+                <div class="score-label">Engagement</div>
+                <div id="engagementScore" class="score-value" style="color: #10b981;">0</div>
+              </div>
+              <div class="score-card">
+                <div class="score-label">Risk Level</div>
+                <div id="riskLevel" class="score-value" style="color: #6b7280;">LOW</div>
+              </div>
+            </div>
+
+            <div style="margin: 20px 0;">
+              <h4 style="margin: 0 0 8px 0; font-size: 14px;">Engagement vs Toxicity</h4>
+              <div class="comparison-bar">
+                <div id="engagementBar" class="bar-engagement" style="width: 50%;">Engagement 50%</div>
+                <div id="toxicityBar" class="bar-toxicity" style="width: 50%;">Risk 50%</div>
+              </div>
+            </div>
+
+            <div id="suggestionsContainer" class="suggestions-list">
+              <h4 style="margin: 0 0 12px 0; font-size: 14px;"> Suggestions for Improvement</h4>
+              <!-- Suggestions will be dynamically inserted here -->
+            </div>
+
+            <div style="margin-top: 20px; display: flex; gap: 12px;">
+              <button class="primary-btn" onclick="downloadPostReport()"> Download Report</button>
+              <button class="secondary-btn" onclick="clearPostForm()"> Analyze Another</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="text-section" class="text-analyzer-section">
+          <h2> Text Analyzer</h2>
+          <p class="muted">Paste any comment below. HateShield will analyze it instantly and provide a safe rewrite.</p>
+          
+          <div class="input-wrapper">
+            <textarea 
+              id="inputText" 
+              placeholder="Type or paste a comment here... (e.g., social media posts, comments, messages)"
+              maxlength="5000"
+            ></textarea>
+          </div>
+
+          <div id="validationWarning" class="warning-message" style="display: none;">
+            <span>⚠️</span>
+            <span id="warningText"></span>
+          </div>
+
+          <div class="controls">
+            <div>
+              <span class="charcount" id="charcount">0 / 5000 chars</span>
+            </div>
+            <div class="quick-actions">
+              <button class="outline-btn" onclick="clearText()" title="Clear text">
+                🗑️ Clear
+              </button>
+              <button class="outline-btn" onclick="setExampleText('You are so dumb and useless!')">
+                 Example
+              </button>
+              <button class="primary-btn" id="analyzeBtn" onclick="analyzeComment()">
+                🛡️ Analyze & Shield
+              </button>
+            </div>
+          </div>
+
+          <div id="analysisResult" class="result-block visually-hidden">
+            <div class="result-head">
+              <div class="classification-badge badge" id="resultBadge">SAFE</div>
+              <div class="muted" id="resultMeta">Confidence: 0%  Processed in 0ms</div>
+            </div>
+
+            <div class="result-body">
+              <div id="emotionBar" class="emotion-bar">
+                <h4 style="margin: 0 0 12px 0; font-size: 14px;">Emotion Scale (Before Rewrite)</h4>
+                <div class="emotion-item">
+                  <span class="emotion-label"> Anger</span>
+                  <div class="emotion-progress">
+                    <div class="emotion-fill" id="anger-fill" style="background: #f87171;"></div>
+                  </div>
+                  <span class="emotion-value" id="anger-value">0%</span>
+                </div>
+                <div class="emotion-item">
+                  <span class="emotion-label"> Joy</span>
+                  <div class="emotion-progress">
+                    <div class="emotion-fill" id="joy-fill" style="background: #4ade80;"></div>
+                  </div>
+                  <span class="emotion-value" id="joy-value">0%</span>
+                </div>
+                <div class="emotion-item">
+                  <span class="emotion-label"> Sadness</span>
+                  <div class="emotion-progress">
+                    <div class="emotion-fill" id="sadness-fill" style="background: #60a5fa;"></div>
+                  </div>
+                  <span class="emotion-value" id="sadness-value">0%</span>
+                </div>
+                <div class="emotion-item">
+                  <span class="emotion-label"> Fear</span>
+                  <div class="emotion-progress">
+                    <div class="emotion-fill" id="fear-fill" style="background: #a78bfa;"></div>
+                  </div>
+                  <span class="emotion-value" id="fear-value">0%</span>
+                </div>
+                <div class="emotion-item">
+                  <span class="emotion-label"> Disgust</span>
+                  <div class="emotion-progress">
+                    <div class="emotion-fill" id="disgust-fill" style="background: #34d399;"></div>
+                  </div>
+                  <span class="emotion-value" id="disgust-value">0%</span>
+                </div>
+              </div>
+              
+              <div class="rewrite-section">
+                <h4> Safe Rewrite</h4>
+                <div id="rewrittenText" class="rewritten"></div>
+                <div class="rewrite-actions">
+                  <button class="outline-btn" onclick="copyRewrite()"> Copy Rewrite</button>
+                  <button class="outline-btn" onclick="useRewrite()">✅ Use This Version</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="glass-card side-card">
+        <h3> Quick Tips</h3>
+        <ul class="tips">
+          <li>Type or paste any text to analyze</li>
+          <li>Analyze text instantly with one click</li>
+          <li>Copy the safe rewrite with one click</li>
+          <li>View emotional tone analysis</li>
+        </ul>
+        
+        <hr />
+        
+        <h4> Try Examples</h4>
+        <div class="example-list">
+          <button class="chip" onclick="setExampleText('You are so dumb and useless!')">Offensive</button>
+          <button class="chip" onclick="setExampleText('I disagree with your approach, but good effort.')">Respectful</button>
+          <button class="chip" onclick="setExampleText('People like you do not belong here.')">Hate Speech</button>
+          <button class="chip" onclick="setExampleText('Great work on this project!')">Positive</button>
+          <button class="chip" onclick="setExampleText('I can see your point, but let\'s discuss this respectfully.')">Constructive</button>
+          <button class="chip" onclick="setExampleText('Your idea is terrible and nobody wants it.')">Harsh Criticism</button>
+          <button class="chip" onclick="setExampleText('Thanks for sharing this update, it was helpful.')">Supportive</button>
+        </div>
+
+        <div class="history-section">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h4 style="margin: 0;"> Recent Analyses</h4>
+            <button class="clear-btn" onclick="clearHistory()">Clear</button>
+          </div>
+          <div id="historyList">
+            <p class="muted" style="font-size: 13px; text-align: center;">No analyses yet</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+  
+  <footer class="glass-footer">© 2026 HateShield  AI-Powered Content Safety</footer>
+
+  <script src="js/sfx.js"></script>
+  <script>
+    // Load theme on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      loadTheme();
+      updateCharCount();
+      loadHistory();
+    });
+
+    function loadTheme() {
+      const settings = getSettings();
+      const isDark = settings.darkMode !== false;
+      applyTheme(isDark);
+    }
+
+    function getSettings() {
+      try {
+        const saved = localStorage.getItem('hs_settings');
+        return saved ? JSON.parse(saved) : { darkMode: true };
+      } catch (e) {
+        return { darkMode: true };
+      }
+    }
+
+    function applyTheme(isDark) {
+      const themeBtn = document.getElementById('themeToggle');
+      const html = document.documentElement;
+      const body = document.body;
+      
+      if (isDark) {
+        html.classList.remove('sky-theme');
+        body.classList.remove('sky-theme');
+        if (themeBtn) themeBtn.textContent = '🌙';
+      } else {
+        html.classList.add('sky-theme');
+        body.classList.add('sky-theme');
+        if (themeBtn) themeBtn.textContent = '☀️';
+      }
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.contains('sky-theme');
+      const isDark = isLight;
+      applyTheme(isDark);
+      
+      const settings = getSettings();
+      settings.darkMode = isDark;
+      localStorage.setItem('hs_settings', JSON.stringify(settings));
+      
+      showFeedback(newIsDark ? 'Silver + Black theme enabled' : 'Sky Blue + Black theme enabled');
+      if (typeof playSfx === 'function') playSfx('toggle');
+    }
+
+    function validateInput(text) {
+      const validationWarning = document.getElementById('validationWarning');
+      const warningText = document.getElementById('warningText');
+      
+      // Check if only numbers
+      const onlyNumbers = /^[0-9\s\.\,\-\+\=\(\)\[\]\{\}\/\\\:\;]+$/.test(text);
+      
+      if (onlyNumbers) {
+        validationWarning.style.display = 'flex';
+        warningText.textContent = 'Input contains only numbers. Please provide meaningful text for analysis.';
+        return false;
+      }
+      
+      // Check minimum length
+      if (text.length < 3) {
+        validationWarning.style.display = 'flex';
+        warningText.textContent = 'Input is too short. Please provide at least 3 characters.';
+        return false;
+      }
+      
+      validationWarning.style.display = 'none';
+      return true;
+    }
+
+    function applyAnalysisResult(data, originalText) {
+      const resultBox = document.getElementById('analysisResult');
+      const badge = document.getElementById('resultBadge');
+      const meta = document.getElementById('resultMeta');
+      const rewritten = document.getElementById('rewrittenText');
+
+      // Check for validation warnings from backend
+      if (data.warning) {
+        const validationWarning = document.getElementById('validationWarning');
+        const warningText = document.getElementById('warningText');
+        validationWarning.style.display = 'flex';
+        warningText.textContent = data.warning;
+        resultBox.classList.add('visually-hidden');
+        return false;
+      }
+
+      const classification = (data.classification || 'safe').toLowerCase();
+      badge.innerText = classification.toUpperCase().replace('_', ' ');
+      badge.className = `classification-badge badge badge-${classification}`;
+
+      meta.innerText = `Confidence: ${data.confidence}%  Processed in ${data.processing_time_ms || 0}ms`;
+      rewritten.innerText = data.rewritten_text || '';
+
+      if (data.emotions) {
+        setTimeout(() => updateEmotions(data.emotions), 100);
+      }
+
+      resultBox.classList.remove('visually-hidden');
+      saveToHistory(originalText, classification, data.confidence);
+
+      setTimeout(() => {
+        resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+
+      if (typeof playSfx === 'function') playSfx('success');
+
+      return true;
+    }
+
+    async function analyzeComment() {
+      const textEl = document.getElementById('inputText');
+      const analyzeBtn = document.getElementById('analyzeBtn');
+
+      const text = textEl.value.trim();
+      if (!text) { 
+        showFeedback('⚠️ Please enter text to analyze', 'warning');
+        return; 
+      }
+
+      // Validate input
+      if (!validateInput(text)) {
+        return;
+      }
+
+      if (typeof playSfx === 'function') playSfx('click');
+
+      analyzeBtn.disabled = true;
+      analyzeBtn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+
+      resetEmotions();
+
+      try {
+        const settings = getSettings();
+        const backendUrl = settings.backendUrl || 'http://127.0.0.1:5000';
+        
+        const resp = await fetch(backendUrl + '/analyze', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ text })
+        });
+        
+        if (!resp.ok) throw new Error('Network response was not ok');
+        const data = await resp.json();
+        applyAnalysisResult(data, text);
+        
+      } catch (e) {
+        showFeedback(' Failed to connect to backend. Is it running on http://127.0.0.1:5000?', 'error');
+        console.error(e);
+        if (typeof playSfx === 'function') playSfx('error');
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = '🛡️ Analyze & Shield';
+      }
+    }
+
+    function previewSelectedImage() {
+      const imageInput = document.getElementById('imageInput');
+      const previewWrap = document.getElementById('imagePreviewWrap');
+      const preview = document.getElementById('imagePreview');
+      const result = document.getElementById('imageResult');
+
+      const file = imageInput?.files?.[0];
+      if (!file) {
+        previewWrap.classList.remove('active');
+        result.classList.remove('active');
+        return;
+      }
+
+      const objectUrl = URL.createObjectURL(file);
+      preview.src = objectUrl;
+      preview.onload = () => URL.revokeObjectURL(objectUrl);
+      previewWrap.classList.add('active');
+      result.classList.remove('active');
+    }
+
+    async function analyzeImage() {
+      const imageInput = document.getElementById('imageInput');
+      const analyzeBtn = document.getElementById('analyzeImageBtn');
+      const result = document.getElementById('imageResult');
+      const status = document.getElementById('imageStatus');
+      const emotion = document.getElementById('imageEmotion');
+      const meta = document.getElementById('imageMeta');
+      const warning = document.getElementById('imageWarning');
+
+      const file = imageInput?.files?.[0];
+      if (!file) {
+        showFeedback('⚠️ Please select an image first', 'warning');
+        return;
+      }
+
+      const hasImageMime = !!file.type && file.type.startsWith('image/');
+      const hasImageExt = /\.(png|jpe?g|webp|gif|bmp)$/i.test(file.name || '');
+      if (!hasImageMime && !hasImageExt) {
+        showFeedback('⚠️ Please choose a valid image file', 'warning');
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        showFeedback('⚠️ Image is too large. Max allowed size is 10MB.', 'warning');
+        return;
+      }
+
+      if (typeof playSfx === 'function') playSfx('click');
+
+      analyzeBtn.disabled = true;
+      analyzeBtn.innerHTML = '<span class="loading-spinner"></span> Scanning...';
+
+      try {
+        const settings = getSettings();
+        const backendUrl = settings.backendUrl || 'http://127.0.0.1:5000';
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const resp = await fetch(backendUrl + '/analyze_image', {
+          method: 'POST',
+          body: formData
+        });
+
+        let data;
+        try {
+          data = await resp.json();
+        } catch (parseError) {
+          throw new Error(`Image API returned invalid response (HTTP ${resp.status})`);
+        }
+        if (!resp.ok || data.error) {
+          throw new Error(data.error || 'Image analysis failed');
+        }
+
+        const rawStatus = (data.status || data.classification || 'safe').toLowerCase();
+        const unsafeStates = ['unsafe', 'offensive', 'toxic', 'hate_speech', 'hate'];
+        const isUnsafe = unsafeStates.includes(rawStatus);
+        status.textContent = isUnsafe ? 'UNSAFE' : 'SAFE';
+        status.className = `image-status ${isUnsafe ? 'unsafe' : 'safe'}`;
+
+        const detectedEmotion = (data.emotion || data.dominant_emotion || 'neutral').toLowerCase();
+        emotion.textContent = `Emotion: ${detectedEmotion}`;
+        const confidence = Number(data.confidence ?? data.score ?? 0);
+        meta.textContent = `Confidence: ${confidence}%  Processed in ${data.processing_time_ms || 0}ms`;
+
+        if (data.warning) {
+          warning.style.display = 'block';
+          warning.textContent = `⚠️ ${data.warning}`;
+        } else {
+          warning.style.display = 'none';
+          warning.textContent = '';
+        }
+
+        result.style.display = '';
+        result.classList.add('active');
+        result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        showFeedback(' Image analysis complete!');
+        if (typeof playSfx === 'function') playSfx('success');
+      } catch (e) {
+        showFeedback(`❌ ${e.message || 'Failed to analyze image. Check backend and dependencies.'}`, 'error');
+        console.error(e);
+        if (typeof playSfx === 'function') playSfx('error');
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = '🖼️ Analyze Image';
+      }
+    }
+
+    async function analyzeAudienceReaction() {
+      const audienceInput = document.getElementById('audienceInput');
+      const analyzeBtn = document.getElementById('analyzeAudienceBtn');
+      const result = document.getElementById('audienceResult');
+      const dominant = document.getElementById('dominantEmotionText');
+      const meta = document.getElementById('audienceMeta');
+      const positive = document.getElementById('positivePercent');
+      const negative = document.getElementById('negativePercent');
+      const neutral = document.getElementById('neutralPercent');
+
+      const postUrl = (audienceInput?.value || '').trim();
+      if (!postUrl) {
+        showFeedback('⚠️ Please enter a post link or file path', 'warning');
+        return;
+      }
+
+      let parsedUrl;
+      try {
+        parsedUrl = new URL(postUrl);
+      } catch (e) {
+        parsedUrl = null;
+      }
+
+      const validProtocols = ['http:', 'https:', 'file:'];
+      if (!parsedUrl || !validProtocols.includes(parsedUrl.protocol)) {
+        showFeedback('⚠️ Please enter a valid URL (http://, https://, or file:///)', 'warning');
+        return;
+      }
+
+      analyzeBtn.disabled = true;
+      analyzeBtn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+
+      try {
+        const settings = getSettings();
+        const backendUrl = settings.backendUrl || 'http://127.0.0.1:5000';
+
+        // Send URL to backend - it will handle both http/https and file:// URLs
+        const resp = await fetch(backendUrl + '/analyze_audience', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ post_url: postUrl })
+        });
+
+        const data = await resp.json();
+        if (!resp.ok || data.error) {
+          throw new Error(data.error || 'Audience analysis failed');
+        }
+
+        positive.textContent = `${data.positive_percent || 0}%`;
+        negative.textContent = `${data.negative_percent || 0}%`;
+        neutral.textContent = `${data.neutral_percent || 0}%`;
+
+        const dominantLabel = (data.dominant_emotion || 'neutral').toLowerCase();
+        dominant.textContent = `Dominant: ${dominantLabel}`;
+        dominant.className = `image-status ${dominantLabel === 'anger' ? 'unsafe' : 'safe'}`;
+
+        meta.textContent = `${data.analyzed_comments || 0}/${data.total_comments || 0} comments analyzed  ${data.processing_time_ms || 0}ms`;
+        result.classList.add('active');
+        result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        showFeedback(' Audience reaction analysis complete!');
+        if (typeof playSfx === 'function') playSfx('success');
+      } catch (e) {
+        showFeedback(` ${e.message || 'Failed to analyze audience reaction'}`, 'error');
+        console.error(e);
+        if (typeof playSfx === 'function') playSfx('error');
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = ' Analyze Post Audience';
+      }
+    }
+
+    async function analyzePost() {
+      const analyzeBtn = document.getElementById('analyzePostBtn');
+      const result = document.getElementById('postResult');
+      const verdict = document.getElementById('postVerdict');
+      const qualityScore = document.getElementById('qualityScore');
+      const engagementScore = document.getElementById('engagementScore');
+      const riskLevel = document.getElementById('riskLevel');
+      const engagementBar = document.getElementById('engagementBar');
+      const toxicityBar = document.getElementById('toxicityBar');
+      const suggestionsContainer = document.getElementById('suggestionsContainer');
+
+      const caption = document.getElementById('postCaption').value.trim();
+      const hashtags = document.getElementById('postHashtags').value.trim();
+      const description = document.getElementById('postDescription').value.trim();
+      const target_audience = document.getElementById('postAudience').value.trim();
+
+      if (!caption && !hashtags && !description) {
+        showFeedback('⚠️ Please enter at least one content field (caption, hashtags, or description)', 'warning');
+        return;
+      }
+
+      analyzeBtn.disabled = true;
+      analyzeBtn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+
+      try {
+        const settings = getSettings();
+        const backendUrl = settings.backendUrl || 'http://127.0.0.1:5000';
+
+        const resp = await fetch(backendUrl + '/analyze_post', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ caption, hashtags, description, target_audience })
+        });
+
+        const data = await resp.json();
+        if (!resp.ok || data.error) {
+          throw new Error(data.error || 'Post analysis failed');
+        }
+
+        // Store report data globally for download
+        window.lastPostReport = data.report;
+
+        // Update verdict
+        if (data.is_good_content) {
+          verdict.textContent = ' APPROVED FOR POSTING';
+          verdict.className = 'verdict-badge verdict-approved';
+        } else {
+          verdict.textContent = ' NEEDS REVISION';
+          verdict.className = 'verdict-badge verdict-revision';
+        }
+
+        // Update scores
+        qualityScore.textContent = data.quality_score || 0;
+        engagementScore.textContent = data.engagement_score || 0;
+        riskLevel.textContent = data.risk_level || 'LOW';
+        riskLevel.style.color = data.risk_color || '#10b981';
+
+        // Update comparison bar
+        const engScore = data.engagement_score || 0;
+        const toxScore = data.comparison.toxicity_risk || 0;
+        const total = engScore + toxScore || 1;
+        const engPercent = Math.round((engScore / total) * 100);
+        const toxPercent = 100 - engPercent;
+
+        engagementBar.style.width = `${engPercent}%`;
+        toxicityBar.style.width = `${toxPercent}%`;
+        engagementBar.textContent = `Engagement ${engScore}`;
+        toxicityBar.textContent = `Risk ${toxScore}`;
+
+        // Display suggestions
+        if (data.suggestions && data.suggestions.length > 0) {
+          let suggestionsHTML = '<h4 style="margin: 0 0 12px 0; font-size: 14px;"> Suggestions for Improvement</h4>';
+          data.suggestions.forEach(sug => {
+            const priorityClass = `suggestion-${sug.priority}`;
+            const icon = sug.priority === 'critical' ? '🚨' : (sug.priority === 'medium' ? '⚠️' : '💡');
+            suggestionsHTML += `
+              <div class="suggestion-item ${priorityClass}">
+                ${icon} <strong>${sug.category}:</strong> ${sug.message}
+              </div>
+            `;
+          });
+          suggestionsContainer.innerHTML = suggestionsHTML;
+        } else {
+          suggestionsContainer.innerHTML = `
+            <h4 style="margin: 0 0 12px 0; font-size: 14px;"> Suggestions for Improvement</h4>
+            <div class="suggestion-item" style="border-color: #10b981; background: rgba(16, 185, 129, 0.1);">
+               Your content looks great! Ready to post.
+            </div>
+          `;
+        }
+
+        result.classList.add('active');
+        result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        showFeedback(' Post analysis complete!');
+        if (typeof playSfx === 'function') playSfx('success');
+      } catch (e) {
+        showFeedback(` ${e.message || 'Failed to analyze post'}`, 'error');
+        console.error(e);
+        if (typeof playSfx === 'function') playSfx('error');
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = ' Analyze Post';
+      }
+    }
+
+    function clearPostForm() {
+      document.getElementById('postCaption').value = '';
+      document.getElementById('postHashtags').value = '';
+      document.getElementById('postDescription').value = '';
+      document.getElementById('postAudience').value = '';
+      const result = document.getElementById('postResult');
+      if (result) {
+        result.classList.remove('active');
+        result.style.display = '';
+      }
+      showFeedback('🗑️ Form cleared');
+    }
+
+    function downloadPostReport() {
+      const report = window.lastPostReport;
+      if (!report) {
+        showFeedback('⚠️ No report available to download', 'warning');
+        return;
+      }
+
+      const reportText = `
+
+       HATESHIELD POST ANALYSIS
+
+
+ANALYSIS DATE: ${report.timestamp}
+VERDICT: ${report.verdict}
+
+
+CONTENT ANALYZED
+
+
+CAPTION:
+${report.caption || 'N/A'}
+
+HASHTAGS:
+${report.hashtags || 'N/A'}
+
+DESCRIPTION:
+${report.description || 'N/A'}
+
+
+ANALYSIS RESULTS
+
+
+Quality Score: ${document.getElementById('qualityScore').textContent}/100
+Engagement Score: ${document.getElementById('engagementScore').textContent}/100
+Risk Level: ${document.getElementById('riskLevel').textContent}
+
+Recommendation: ${report.verdict === 'APPROVED' ? 'Safe to post' : 'Review and revise before posting'}
+
+
+         Generated by HateShield
+      AI-Powered Content Safety
+
+`.trim();
+
+      const blob = new Blob([reportText], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `HateShield_PostAnalysis_${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showFeedback(' Report downloaded successfully!');
+      if (typeof playSfx === 'function') playSfx('success');
+    }
+
+    function resetEmotions() {
+      const emotions = ['anger', 'joy', 'sadness', 'fear', 'disgust'];
+      emotions.forEach(emotion => {
+        const fill = document.getElementById(`${emotion}-fill`);
+        const valueEl = document.getElementById(`${emotion}-value`);
+        if (fill) fill.style.width = '0%';
+        if (valueEl) valueEl.textContent = '0%';
+      });
+    }
+
+    function updateEmotions(emotions) {
+      const emotionTypes = ['anger', 'joy', 'sadness', 'fear', 'disgust'];
+      emotionTypes.forEach(emotion => {
+        const value = emotions[emotion] || 0;
+        const fill = document.getElementById(`${emotion}-fill`);
+        const valueEl = document.getElementById(`${emotion}-value`);
+        
+        if (fill && valueEl) {
+          fill.style.transition = 'none';
+          fill.style.width = '0%';
+          fill.offsetHeight;
+          fill.style.transition = 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+          fill.style.width = value + '%';
+          valueEl.textContent = value + '%';
+        }
+      });
+    }
+
+    function clearText() {
+      const el = document.getElementById('inputText');
+      if (el) {
+        el.value = '';
+        updateCharCount();
+      }
+      document.getElementById('analysisResult').classList.add('visually-hidden');
+      document.getElementById('validationWarning').style.display = 'none';
+      if (typeof playSfx === 'function') playSfx('click');
+    }
+
+    function setExampleText(txt) {
+      const el = document.getElementById('inputText');
+      if (el) {
+        el.value = txt;
+        updateCharCount();
+      }
+      document.getElementById('validationWarning').style.display = 'none';
+    }
+
+    function copyRewrite() {
+      const txt = document.getElementById('rewrittenText')?.innerText || '';
+      if (!txt) return;
+      if (typeof playSfx === 'function') playSfx('click');
+      
+      navigator.clipboard.writeText(txt).then(() => {
+        showFeedback(' Copied to clipboard!');
+        if (typeof playSfx === 'function') playSfx('success');
+      }).catch(err => {
+        console.error('Copy failed:', err);
+        showFeedback(' Failed to copy', 'error');
+        if (typeof playSfx === 'function') playSfx('error');
+      });
+    }
+
+    function useRewrite() {
+      const txt = document.getElementById('rewrittenText')?.innerText || '';
+      if (!txt) return;
+      if (typeof playSfx === 'function') playSfx('click');
+      
+      const el = document.getElementById('inputText');
+      if (el) {
+        el.value = txt;
+        updateCharCount();
+        showFeedback(' Text replaced with safe version!');
+        if (typeof playSfx === 'function') playSfx('success');
+      }
+    }
+
+    function showFeedback(message, type = 'success') {
+      const existing = document.querySelector('.copy-feedback');
+      if (existing) existing.remove();
+      
+      const feedback = document.createElement('div');
+      feedback.className = 'copy-feedback';
+      feedback.textContent = message;
+      
+      if (type === 'warning') {
+        feedback.style.background = '#fbbf24';
+      } else if (type === 'error') {
+        feedback.style.background = '#f87171';
+        feedback.style.color = '#fff';
+      }
+      
+      document.body.appendChild(feedback);
+      
+      setTimeout(() => {
+        feedback.style.opacity = '0';
+        feedback.style.transform = 'translateY(10px)';
+        setTimeout(() => feedback.remove(), 300);
+      }, 2500);
+    }
+
+    function updateCharCount() {
+      const input = document.getElementById('inputText');
+      const counter = document.getElementById('charcount');
+      if (!input || !counter) return;
+      
+      const len = input.value.length;
+      const max = 5000;
+      counter.textContent = `${len} / ${max} chars`;
+      
+      if (len > max * 0.9) {
+        counter.className = 'charcount char-limit-warning';
+      } else if (len >= max) {
+        counter.className = 'charcount char-limit-error';
+      } else {
+        counter.className = 'charcount';
+      }
+    }
+
+    function saveToHistory(text, classification, confidence) {
+      let history = JSON.parse(localStorage.getItem('hs_history') || '[]');
+      history.unshift({
+        text: text.substring(0, 100),
+        classification,
+        confidence,
+        timestamp: Date.now()
+      });
+      
+      history = history.slice(0, 5);
+      localStorage.setItem('hs_history', JSON.stringify(history));
+      loadHistory();
+    }
+
+    function loadHistory() {
+      const history = JSON.parse(localStorage.getItem('hs_history') || '[]');
+      const container = document.getElementById('historyList');
+      
+      if (history.length === 0) {
+        container.innerHTML = '<p class="muted" style="font-size: 13px; text-align: center;">No analyses yet</p>';
+        return;
+      }
+      
+      container.innerHTML = history.map(item => `
+        <div class="history-item" onclick="setExampleText('${item.text.replace(/'/g, "\\'")}')">
+          <div class="history-item-text">${item.text}...</div>
+          <span class="history-item-badge">${item.classification.toUpperCase()}</span>
+        </div>
+      `).join('');
+    }
+
+    function clearHistory() {
+      if (confirm('Clear all analysis history?')) {
+        localStorage.removeItem('hs_history');
+        loadHistory();
+        showFeedback('🗑️ History cleared');
+        if (typeof playSfx === 'function') playSfx('success');
+      }
+    }
+
+    function scrollToSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        localStorage.setItem('selectedSection', sectionId);
+        updateDropdownActive();
+      }
+    }
+
+    function updateDropdownActive() {
+      const selectedId = localStorage.getItem('selectedSection');
+      const items = document.querySelectorAll('.dropdown-item');
+      items.forEach(item => {
+        item.classList.remove('active');
+        const href = item.getAttribute('onclick');
+        if (href && href.includes(selectedId)) {
+          item.classList.add('active');
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('inputText');
+      const imageInput = document.getElementById('imageInput');
+      if (input) {
+        input.addEventListener('input', updateCharCount);
+        
+        input.addEventListener('keydown', (e) => {
+          if (e.ctrlKey && e.key === 'Enter') {
+            analyzeComment();
+          }
+        });
+      }
+
+      if (imageInput) {
+        imageInput.addEventListener('change', previewSelectedImage);
+      }
+      
+      loadHistory();
+      updateCharCount();
+      updateDropdownActive();
+
+      // Auto-scroll to selected section if one was chosen from home page
+      const selectedSection = localStorage.getItem('selectedSection');
+      if (selectedSection) {
+        setTimeout(() => {
+          const section = document.getElementById(selectedSection);
+          if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      }
+
+      // Setup dropdown menu
+      const dropdown = document.querySelector('.nav-dropdown');
+      const dropdownMenu = document.querySelector('.dropdown-menu');
+      const analyzerLink = document.querySelector('.nav-dropdown > .nav-link');
+      
+      if (dropdown && analyzerLink && dropdownMenu) {
+        analyzerLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          dropdownMenu.classList.toggle('show');
+        });
+        
+        document.addEventListener('click', (e) => {
+          if (!dropdown.contains(e.target)) {
+            dropdownMenu.classList.remove('show');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+
+

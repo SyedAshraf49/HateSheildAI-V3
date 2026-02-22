@@ -1,0 +1,627 @@
+﻿<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HateShield  Settings</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <style>
+    .settings-section {
+      margin: 24px 0;
+      padding-top: 20px;
+      border-top: 1px solid var(--glass-border);
+    }
+    
+    .settings-section:first-of-type {
+      border-top: none;
+      padding-top: 0;
+    }
+    
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--accent);
+    }
+    
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+    
+    .setting-info {
+      flex: 1;
+    }
+    
+    .setting-label {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .setting-description {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    
+    .setting-control {
+      margin-left: 20px;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 24px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .toggle-switch.active {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .toggle-switch.active .toggle-slider {
+      transform: translateX(24px);
+    }
+    
+    .input-field {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--glass-border);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      min-width: 200px;
+    }
+    
+    .input-field:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    
+    .select-field {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--glass-border);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      min-width: 150px;
+    }
+    
+    .range-slider {
+      width: 200px;
+      margin-left: 12px;
+    }
+    
+    .range-value {
+      display: inline-block;
+      min-width: 40px;
+      text-align: center;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    
+    .success-message {
+      background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3);
+      color: #4ade80;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+      display: none;
+      animation: slideUp 0.3s ease-out;
+    }
+    
+    .success-message.show {
+      display: block;
+    }
+    
+    .danger-zone {
+      background: rgba(248, 113, 113, 0.05);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+      padding: 16px;
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+    
+    .danger-btn {
+      background: transparent;
+      border: 1px solid #f87171;
+      color: #f87171;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    .danger-btn:hover {
+      background: rgba(248, 113, 113, 0.1);
+    }
+  </style>
+</head>
+<body class="fade-in">
+  <nav class="glass-nav">
+    <div class="logo" onclick="location.href='index.html'">
+      <div class="logo-mark"><img src="assets/logo.png" alt="HateShield logo"></div>
+      <div class="logo-text">HateShield</div>
+    </div>
+    <div class="nav-center">
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link" href="text-analyzer.html">Analyzer</a>
+      <a class="nav-link active" href="settings.html">Settings</a>
+    </div>
+    <div class="nav-right">
+      <button id="themeToggle" class="icon-btn" onclick="toggleTheme()">🌙</button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="glass-card">
+      <h2>⚙️ Settings</h2>
+      <p class="muted">Customize your HateShield experience</p>
+
+      <!-- Appearance Settings -->
+      <div class="settings-section">
+        <div class="section-title">Theme</div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Sky Blue Theme</div>
+            <div class="setting-description">Toggle between Silver + Black and Sky Blue + Black</div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle-switch active" id="darkModeToggle" onclick="toggleSetting('darkMode')">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Animations</div>
+            <div class="setting-description">Enable smooth animations and transitions</div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle-switch active" id="animationsToggle" onclick="toggleSetting('animations')">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analysis Settings -->
+      <div class="settings-section">
+        <div class="section-title"> Analysis</div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Auto-Analyze</div>
+            <div class="setting-description">Automatically analyze text after 2 seconds of inactivity</div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle-switch" id="autoAnalyzeToggle" onclick="toggleSetting('autoAnalyze')">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Show Emotions</div>
+            <div class="setting-description">Display emotional analysis with bar charts</div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle-switch active" id="showEmotionsToggle" onclick="toggleSetting('showEmotions')">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Confidence Threshold</div>
+            <div class="setting-description">Minimum confidence level to show warnings</div>
+          </div>
+          <div class="setting-control">
+            <input type="range" class="range-slider" id="confidenceThreshold" 
+                   min="0" max="100" value="50" 
+                   oninput="updateRangeValue('confidence', this.value)">
+            <span class="range-value" id="confidenceValue">50%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backend Settings -->
+      <div class="settings-section">
+        <div class="section-title"> Backend</div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Backend URL</div>
+            <div class="setting-description">API endpoint for text analysis</div>
+          </div>
+          <div class="setting-control">
+            <input type="text" class="input-field" id="backendUrl" 
+                   value="http://127.0.0.1:5000" 
+                   placeholder="http://127.0.0.1:5000">
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Request Timeout</div>
+            <div class="setting-description">Maximum wait time for API responses (seconds)</div>
+          </div>
+          <div class="setting-control">
+            <input type="range" class="range-slider" id="requestTimeout" 
+                   min="5" max="30" value="10" 
+                   oninput="updateRangeValue('timeout', this.value)">
+            <span class="range-value" id="timeoutValue">10s</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Settings -->
+      <div class="settings-section">
+        <div class="section-title"> History</div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Save History</div>
+            <div class="setting-description">Store analysis history locally</div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle-switch active" id="saveHistoryToggle" onclick="toggleSetting('saveHistory')">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">History Limit</div>
+            <div class="setting-description">Maximum number of items to keep</div>
+          </div>
+          <div class="setting-control">
+            <select class="select-field" id="historyLimit">
+              <option value="5">5 items</option>
+              <option value="10">10 items</option>
+              <option value="20">20 items</option>
+              <option value="50">50 items</option>
+              <option value="100">100 items</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notification Settings -->
+      <div class="settings-section">
+        <div class="section-title"> Notifications</div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Show Success Messages</div>
+            <div class="setting-description">Display confirmation for successful actions</div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle-switch active" id="showSuccessToggle" onclick="toggleSetting('showSuccess')">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-label">Sound Effects</div>
+            <div class="setting-description">Play audio feedback for actions</div>
+          </div>
+          <div class="setting-control">
+            <div class="toggle-switch" id="soundEffectsToggle" onclick="toggleSetting('soundEffects')">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save Buttons -->
+      <div class="button-group">
+        <button class="primary-btn" onclick="saveAllSettings()"> Save Settings</button>
+        <button class="outline-btn" onclick="resetToDefaults()"> Reset to Defaults</button>
+        <button class="outline-btn" onclick="testBackend()"> Test Backend Connection</button>
+      </div>
+
+      <div class="success-message" id="successMessage">
+         Settings saved successfully!
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="settings-section">
+        <div class="section-title" style="color: #f87171;">⚠️ Danger Zone</div>
+        
+        <div class="danger-zone">
+          <div class="setting-item" style="border: none; padding: 0;">
+            <div class="setting-info">
+              <div class="setting-label">Clear All Data</div>
+              <div class="setting-description">Delete all history, settings, and cached data</div>
+            </div>
+            <div class="setting-control">
+              <button class="danger-btn" onclick="clearAllData()">🗑️ Clear Data</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="glass-footer">© 2026 HateShield  AI-Powered Content Safety</footer>
+
+  <script src="js/sfx.js"></script>
+  <script>
+    // Load settings on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAllSettings();
+    });
+
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'hs_settings') {
+        loadAllSettings();
+      }
+    });
+
+    function loadAllSettings() {
+      const settings = getSettings();
+      
+      // Appearance
+      updateToggle('darkModeToggle', settings.darkMode !== false);
+      updateToggle('animationsToggle', settings.animations !== false);
+      
+      // Analysis
+      updateToggle('autoAnalyzeToggle', settings.autoAnalyze === true);
+      updateToggle('showEmotionsToggle', settings.showEmotions !== false);
+      document.getElementById('confidenceThreshold').value = settings.confidenceThreshold || 50;
+      updateRangeValue('confidence', settings.confidenceThreshold || 50);
+      
+      // Backend
+      document.getElementById('backendUrl').value = settings.backendUrl || 'http://127.0.0.1:5000';
+      document.getElementById('requestTimeout').value = settings.requestTimeout || 10;
+      updateRangeValue('timeout', settings.requestTimeout || 10);
+      
+      // History
+      updateToggle('saveHistoryToggle', settings.saveHistory !== false);
+      document.getElementById('historyLimit').value = settings.historyLimit || 5;
+      
+      // Notifications
+      updateToggle('showSuccessToggle', settings.showSuccess !== false);
+      updateToggle('soundEffectsToggle', settings.soundEffects === true);
+      
+      // Apply theme immediately
+      applyTheme(settings.darkMode !== false);
+    }
+
+    function getSettings() {
+      const saved = localStorage.getItem('hs_settings');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to parse settings:', e);
+          return getDefaultSettings();
+        }
+      }
+      return getDefaultSettings();
+    }
+
+    function getDefaultSettings() {
+      return {
+        darkMode: true,
+        animations: true,
+        autoAnalyze: false,
+        confidenceThreshold: 50,
+        showEmotions: true,
+        backendUrl: 'http://127.0.0.1:5000',
+        requestTimeout: 10,
+        saveHistory: true,
+        historyLimit: 5,
+        showSuccess: true,
+        soundEffects: false
+      };
+    }
+
+    function updateToggle(id, isActive) {
+      const toggle = document.getElementById(id);
+      if (toggle) {
+        if (isActive) {
+          toggle.classList.add('active');
+        } else {
+          toggle.classList.remove('active');
+        }
+      }
+    }
+
+    function toggleSetting(settingName) {
+      const toggleId = settingName + 'Toggle';
+      const toggle = document.getElementById(toggleId);
+      if (!toggle) return;
+      
+      const isActive = toggle.classList.contains('active');
+      
+      if (isActive) {
+        toggle.classList.remove('active');
+      } else {
+        toggle.classList.add('active');
+      }
+      
+      // Special handling for theme
+      if (settingName === 'darkMode') {
+        const isDark = !isActive;
+        applyTheme(isDark);
+        const settings = getSettings();
+        settings.darkMode = isDark;
+        localStorage.setItem('hs_settings', JSON.stringify(settings));
+      }
+
+      if (typeof playSfx === 'function') playSfx('toggle');
+    }
+
+    function applyTheme(isDark) {
+      const themeBtn = document.getElementById('themeToggle');
+      if (isDark) {
+        document.documentElement.classList.remove('sky-theme');
+        document.body.classList.remove('sky-theme');
+        if (themeBtn) themeBtn.textContent = '🌙';
+      } else {
+        document.documentElement.classList.add('sky-theme');
+        document.body.classList.add('sky-theme');
+        if (themeBtn) themeBtn.textContent = '☀️';
+      }
+    }
+
+    function toggleTheme() {
+      const isLight = document.documentElement.classList.contains('sky-theme');
+      const isDark = isLight;
+      applyTheme(isDark);
+      updateToggle('darkModeToggle', isDark);
+      const settings = getSettings();
+      settings.darkMode = isDark;
+      localStorage.setItem('hs_settings', JSON.stringify(settings));
+      if (typeof playSfx === 'function') playSfx('toggle');
+    }
+
+    function updateRangeValue(type, value) {
+      if (type === 'confidence') {
+        document.getElementById('confidenceValue').textContent = value + '%';
+      } else if (type === 'timeout') {
+        document.getElementById('timeoutValue').textContent = value + 's';
+      }
+    }
+
+    function saveAllSettings() {
+      const settings = {
+        darkMode: document.getElementById('darkModeToggle').classList.contains('active'),
+        animations: document.getElementById('animationsToggle').classList.contains('active'),
+        autoAnalyze: document.getElementById('autoAnalyzeToggle').classList.contains('active'),
+        confidenceThreshold: parseInt(document.getElementById('confidenceThreshold').value),
+        showEmotions: document.getElementById('showEmotionsToggle').classList.contains('active'),
+        backendUrl: document.getElementById('backendUrl').value.trim(),
+        requestTimeout: parseInt(document.getElementById('requestTimeout').value),
+        saveHistory: document.getElementById('saveHistoryToggle').classList.contains('active'),
+        historyLimit: parseInt(document.getElementById('historyLimit').value),
+        showSuccess: document.getElementById('showSuccessToggle').classList.contains('active'),
+        soundEffects: document.getElementById('soundEffectsToggle').classList.contains('active')
+      };
+      
+      // Validate backend URL
+      if (!settings.backendUrl.startsWith('http://') && !settings.backendUrl.startsWith('https://')) {
+        alert('⚠️ Backend URL must start with http:// or https://');
+        return;
+      }
+      
+      localStorage.setItem('hs_settings', JSON.stringify(settings));
+      
+      // Show success message
+      const successMsg = document.getElementById('successMessage');
+      successMsg.classList.add('show');
+      setTimeout(() => {
+        successMsg.classList.remove('show');
+      }, 3000);
+      
+      // Apply settings immediately
+      applyTheme(settings.darkMode);
+
+      if (typeof playSfx === 'function') playSfx('success');
+      
+      console.log('Settings saved:', settings);
+    }
+
+    function resetToDefaults() {
+      if (confirm('⚠️ Reset all settings to default values?')) {
+        const defaults = getDefaultSettings();
+        localStorage.setItem('hs_settings', JSON.stringify(defaults));
+        loadAllSettings();
+        
+        const successMsg = document.getElementById('successMessage');
+        successMsg.textContent = ' Settings reset to defaults!';
+        successMsg.classList.add('show');
+        setTimeout(() => {
+          successMsg.classList.remove('show');
+          successMsg.textContent = ' Settings saved successfully!';
+        }, 3000);
+
+        if (typeof playSfx === 'function') playSfx('success');
+      }
+    }
+
+    async function testBackend() {
+      const url = document.getElementById('backendUrl').value.trim();
+      
+      if (!url) {
+        alert('⚠️ Please enter a backend URL');
+        return;
+      }
+      
+      try {
+        const response = await fetch(url + '/', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          alert(' Backend connection successful!\n\nStatus: ' + (data.status || 'OK'));
+          if (typeof playSfx === 'function') playSfx('success');
+        } else {
+          alert('⚠️ Backend responded with error: ' + response.status);
+          if (typeof playSfx === 'function') playSfx('error');
+        }
+      } catch (error) {
+        alert(' Failed to connect to backend:\n' + error.message + '\n\nMake sure the backend is running at: ' + url);
+        if (typeof playSfx === 'function') playSfx('error');
+      }
+    }
+
+    function clearAllData() {
+      if (confirm('⚠️ Are you sure you want to delete ALL data?\n\nThis will remove:\n All analysis history\n All settings\n All cached data\n\nThis action cannot be undone!')) {
+        if (confirm('⚠️ Final confirmation: Delete everything?')) {
+          localStorage.clear();
+          alert(' All data cleared successfully!\n\nThe page will now reload with default settings.');
+          if (typeof playSfx === 'function') playSfx('success');
+          location.reload();
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+
+

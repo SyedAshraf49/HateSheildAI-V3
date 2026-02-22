@@ -1,0 +1,7 @@
+Flask
+flask-cors
+joblib>=1.4.2
+scikit-learn==1.7.2
+Pillow
+transformers
+torch
