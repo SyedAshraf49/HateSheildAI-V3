@@ -1,45 +1,61 @@
 # HateShield AI
 
-HateShield AI is a full-stack content safety and audience-insight toolkit.
+HateShield AI is a full-stack content safety and audience-insight platform for analyzing text, images, audience reactions, and pre-publication post quality.
 
-It combines:
-- **Text toxicity analysis** (hate speech / offensive / toxic / safe)
-- **Emotion analysis** (anger, fear, joy, sadness, disgust)
-- **Image moderation analysis**
-- **Audience comment sentiment aggregation** from URL or manual comment lists
-- **Pre-publication post review** with quality, risk, and engagement scoring
+Created and maintained by syedashraf49.
 
----
+## Project Preview
 
-## Features
+![HateShield dashboard preview](frontend/assets/readme-preview.svg)
 
-### 1) Text Analyzer
-- Analyze single text input for toxicity class and confidence.
-- Return emotion breakdown and processing time.
+## What It Does
 
-### 2) Image Detection
-- Upload an image file for moderation analysis.
-- Uses a multimodal model pipeline via the backend `ImagePredictor`.
+HateShield combines four core workflows into one lightweight application:
 
-### 3) Audience Analysis
-- Accepts either:
-  - a `post_url` / `url` (supports `http`, `https`, and local `file://` paths), or
-  - manual comments (`comments[]` or newline text input).
-- Extracts and de-duplicates comments from HTML.
-- Produces sentiment percentages and dominant reaction trends.
+- Text toxicity detection with confidence and emotion breakdowns.
+- Image moderation for offensive or harmful visual content.
+- Audience sentiment analysis from public URLs or local HTML fixtures.
+- Post review scoring for quality, engagement, and publication risk.
 
-### 4) Post Analysis (Pre-Publish Safety Check)
-- Evaluates `caption`, `hashtags`, and `description`.
-- Outputs:
-  - toxicity risk level (`LOW`, `MEDIUM`, `HIGH`)
-  - quality score
-  - engagement score
-  - actionable suggestions
-  - publish recommendation (`APPROVED` / `NEEDS REVISION`)
+## Key Features
 
----
+### Text Analyzer
+- Classifies text as hate speech, offensive, toxic, or safe.
+- Returns confidence scores, emotion signals, and processing time.
 
-## Project Structure
+### Image Detection
+- Upload an image for moderation analysis.
+- Uses the backend image prediction pipeline for risk classification.
+
+### Audience Analysis
+- Accepts a `post_url` / `url` or manual comments.
+- Supports local `file://` testing for reliable offline verification.
+- Extracts, cleans, and deduplicates comments from HTML.
+
+### Post Analysis
+- Evaluates caption, hashtags, description, and target audience.
+- Produces quality, engagement, and toxicity risk scoring.
+- Returns actionable improvement suggestions and a publish recommendation.
+
+## Tech Stack
+
+Backend:
+- Python 3.8+
+- Flask
+- Flask-CORS
+- scikit-learn
+- joblib
+- Pillow
+- transformers
+- torch
+
+Frontend:
+- HTML
+- CSS
+- JavaScript
+- Static pages served locally with `python -m http.server`
+
+## Repository Layout
 
 ```
 HateShield/
@@ -63,9 +79,9 @@ HateShield/
 │  ├─ post-analysis.html
 │  ├─ faceAI.html
 │  ├─ settings.html
+│  ├─ assets/
 │  ├─ css/
 │  ├─ js/
-│  ├─ assets/
 │  └─ models/
 ├─ test_positive.html
 ├─ test_negative.html
@@ -74,84 +90,62 @@ HateShield/
 └─ setup_and_run.bat
 ```
 
----
+## Quick Start
 
-## Tech Stack
+### One-Step Launch on Windows
 
-### Backend
-- Python 3.8+
-- Flask + Flask-CORS
-- scikit-learn
-- joblib
-- Pillow
-- transformers
-- torch
-
-### Frontend
-- HTML, CSS, JavaScript
-- Static pages served with `python -m http.server`
-
----
-
-## Quick Start (Windows)
-
-### Option A: One-click startup
-From project root, run:
+Run the startup script from the project root:
 
 ```bat
 setup_and_run.bat
 ```
 
-This script:
-1. verifies Python,
-2. installs backend dependencies,
-3. trains model if missing,
-4. starts backend on `http://127.0.0.1:5000`,
-5. starts frontend on `http://localhost:8000`.
+This script verifies Python, installs dependencies, trains the model if required, starts the backend at `http://127.0.0.1:5000`, and serves the frontend at `http://localhost:8000`.
 
-### Option B: Manual startup
+### Manual Launch
 
-#### 1) Backend
+Start the backend:
+
 ```powershell
 cd backend
 py -m pip install -r requirements.txt
 py app.py
 ```
 
-#### 2) Frontend (new terminal)
+Start the frontend in a second terminal:
+
 ```powershell
 cd frontend
 py -m http.server 8000
 ```
 
-Open: `http://localhost:8000`
+Open `http://localhost:8000` in your browser.
 
----
-
-## API Endpoints
+## API Overview
 
 Base URL: `http://127.0.0.1:5000`
 
 ### `GET /`
-Health check.
+Health check endpoint.
 
 ### `POST /analyze`
-Analyze one text string.
+Analyze a text string for toxicity and emotional tone.
 
 Request:
+
 ```json
 { "text": "sample text" }
 ```
 
 ### `POST /analyze_image`
-Analyze uploaded image.
+Analyze an uploaded image.
 
-Request: `multipart/form-data` with field `image`.
+Request: `multipart/form-data` with an `image` field.
 
 ### `POST /analyze_audience`
-Analyze comments from URL or manual input.
+Analyze audience reactions from a URL or manual comments.
 
-Request examples:
+Examples:
 
 ```json
 { "post_url": "https://example.com/post" }
@@ -166,9 +160,10 @@ Request examples:
 ```
 
 ### `POST /analyze_post`
-Pre-publication post audit.
+Run a pre-publication post review.
 
 Request:
+
 ```json
 {
   "caption": "Your caption",
@@ -178,38 +173,28 @@ Request:
 }
 ```
 
----
-
 ## Testing
 
-Use local HTML fixtures for reliable audience-analysis validation:
+The repository includes local HTML fixtures for repeatable audience-analysis testing:
+
 - `test_positive.html`
 - `test_negative.html`
 - `test_neutral.html`
 
-For complete testing instructions and expected sentiment distributions, see `TESTING_GUIDE.md`.
+For exact usage steps and expected sentiment outcomes, see `TESTING_GUIDE.md`.
 
----
+## Notes
 
-## Notes & Limitations
-
-- Some social platforms block scraping or require authentication.
-- Dynamic comments loaded only through heavy client-side JavaScript may not be extractable.
-- URL extraction quality depends on target page HTML structure.
-
----
+- Some social platforms block automated access or require authentication.
+- Pages that load comments only through JavaScript may not be fully extractable.
+- Public HTML structure has a direct impact on extraction quality.
 
 ## Troubleshooting
 
-- If dependencies fail to install, update `pip` first:
-  ```powershell
-  py -m pip install --upgrade pip
-  ```
-- If backend does not start, ensure port `5000` is free.
-- If frontend does not load API data, confirm backend is running and CORS is enabled.
-
----
+- If dependency installation fails, upgrade pip first with `py -m pip install --upgrade pip`.
+- If the backend does not start, confirm port `5000` is available.
+- If the frontend cannot reach the API, verify that the backend is running and CORS is enabled.
 
 ## License
 
-No license file is currently included in this repository. Add a `LICENSE` file before public/commercial distribution.
+No license file is currently included in this repository. Add one before public or commercial distribution.
