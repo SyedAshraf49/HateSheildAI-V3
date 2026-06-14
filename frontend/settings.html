@@ -443,13 +443,21 @@
     }
 
     function getDefaultSettings() {
+      // Auto-detect backend URL based on deployment environment
+      let defaultBackendUrl = 'http://127.0.0.1:5000';
+      
+      // If not running on localhost, use the same origin as the frontend
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        defaultBackendUrl = window.location.origin;
+      }
+      
       return {
         darkMode: true,
         animations: true,
         autoAnalyze: false,
         confidenceThreshold: 50,
         showEmotions: true,
-        backendUrl: 'http://127.0.0.1:5000',
+        backendUrl: defaultBackendUrl,
         requestTimeout: 10,
         saveHistory: true,
         historyLimit: 5,

@@ -967,10 +967,23 @@
     function getSettings() {
       try {
         const saved = localStorage.getItem('hs_settings');
-        return saved ? JSON.parse(saved) : { darkMode: true };
+        if (saved) {
+          return JSON.parse(saved);
+        }
       } catch (e) {
-        return { darkMode: true };
+        console.error('Failed to parse settings:', e);
       }
+      
+      // Return default settings with auto-detected backend URL
+      let defaultBackendUrl = 'http://127.0.0.1:5000';
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        defaultBackendUrl = window.location.origin;
+      }
+      
+      return {
+        darkMode: true,
+        backendUrl: defaultBackendUrl
+      };
     }
 
     function applyTheme(isDark) {
@@ -1103,7 +1116,7 @@
         applyAnalysisResult(data, text);
         
       } catch (e) {
-        showFeedback(' Failed to connect to backend. Is it running on http://127.0.0.1:5000?', 'error');
+        showFeedback('❌ Failed to connect to backend. Check the backend URL in Settings.', 'error');
         console.error(e);
         if (typeof playSfx === 'function') playSfx('error');
       } finally {

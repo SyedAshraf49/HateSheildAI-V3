@@ -303,13 +303,38 @@
 
   <script src="js/sfx.js"></script>
   <script>
+    // Get backend URL with auto-detection
+    function getBackendUrl() {
+      const settings = localStorage.getItem('hs_settings');
+      if (settings) {
+        try {
+          const parsed = JSON.parse(settings);
+          if (parsed.backendUrl) {
+            return parsed.backendUrl;
+          }
+        } catch (e) {
+          console.error('Failed to parse settings:', e);
+        }
+      }
+      
+      // Auto-detect backend URL if not in settings
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        return window.location.origin;
+      }
+      return 'http://127.0.0.1:5000';
+    }
+
     // Check backend status
     async function checkBackend() {
       const statusDot = document.getElementById('statusDot');
       const statusText = document.getElementById('statusText');
       
       try {
-        const resp = await fetch('http://127.0.0.1:5000/');
+        const backendUrl = getBackendUrl();
+        const resp = await fetch(backendUrl + '/', { 
+          method: 'HEAD',
+          mode: 'cors'
+        });
         if (resp.ok) {
           statusDot.classList.remove('offline');
           statusText.textContent = 'Backend Online';
@@ -319,6 +344,7 @@
       } catch (e) {
         statusDot.classList.add('offline');
         statusText.textContent = 'Backend Offline';
+        console.warn('Backend check failed:', e);
       }
     }
 
@@ -331,10 +357,23 @@
     function getSettings() {
       try {
         const saved = localStorage.getItem('hs_settings');
-        return saved ? JSON.parse(saved) : { darkMode: true };
+        if (saved) {
+          return JSON.parse(saved);
+        }
       } catch (e) {
-        return { darkMode: true };
+        console.error('Failed to parse settings:', e);
       }
+      
+      // Return default settings with auto-detected backend URL
+      let defaultBackendUrl = 'http://127.0.0.1:5000';
+      if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        defaultBackendUrl = window.location.origin;
+      }
+      
+      return {
+        darkMode: true,
+        backendUrl: defaultBackendUrl
+      };
     }
 
     function applyTheme(isDark) {

@@ -1,9 +1,20 @@
-// Get backend URL from settings
+// Get backend URL from settings with auto-detection fallback
 function getBackendUrl() {
   const settings = localStorage.getItem('hs_settings');
   if (settings) {
-    const parsed = JSON.parse(settings);
-    return parsed.backendUrl || 'http://127.0.0.1:5000';
+    try {
+      const parsed = JSON.parse(settings);
+      if (parsed.backendUrl) {
+        return parsed.backendUrl;
+      }
+    } catch (e) {
+      console.error('Failed to parse settings:', e);
+    }
+  }
+  
+  // Auto-detect backend URL if not in settings
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return window.location.origin;
   }
   return 'http://127.0.0.1:5000';
 }

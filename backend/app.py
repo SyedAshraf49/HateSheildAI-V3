@@ -11,7 +11,13 @@ from collections import Counter
 FRONTEND_PATH = os.path.join(os.path.dirname(__file__), '..', 'frontend')
 
 app = Flask(__name__, static_folder=FRONTEND_PATH, static_url_path='')
-CORS(app)
+
+# Enable CORS with flexible configuration for both local and deployed environments
+CORS(app, 
+     resources={r"/api/*": {"origins": "*"},
+                r"/analyze*": {"origins": "*"}},
+     allow_headers=['Content-Type', 'application/json'],
+     supports_credentials=False)
 
 # Correct names: model_path= , vectorizer_path=
 predictor = Predictor(
