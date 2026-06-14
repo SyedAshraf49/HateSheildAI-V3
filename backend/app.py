@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os, time, traceback, re, html
 from urllib.parse import urlparse
@@ -7,7 +7,10 @@ from ml.predictor import Predictor
 from ml.image_predictor import ImagePredictor
 from collections import Counter
 
-app = Flask(__name__)
+# Get the absolute path to the frontend directory
+FRONTEND_PATH = os.path.join(os.path.dirname(__file__), '..', 'frontend')
+
+app = Flask(__name__, static_folder=FRONTEND_PATH, static_url_path='')
 CORS(app)
 
 # Correct names: model_path= , vectorizer_path=
@@ -19,7 +22,15 @@ image_predictor = ImagePredictor()
 
 @app.route('/')
 def home():
-    return {'status': 'HateShield backend running'}
+    return send_from_directory(FRONTEND_PATH, 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    # Serve static files from frontend directory
+    if path and os.path.isfile(os.path.join(FRONTEND_PATH, path)):
+        return send_from_directory(FRONTEND_PATH, path)
+    # Fallback to index.html for SPA routing
+    return send_from_directory(FRONTEND_PATH, 'index.html')
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
